@@ -1378,7 +1378,8 @@ class BertForTokenClassification(BertPreTrainedModel):
 
 
         # viterbi
-        logits = viterbi_decode(logits)
+        if not check_greedy(logits):
+            logits = viterbi_decode(logits)
 
 
         outputs = (logits,) + outputs[2:]  # add hidden states and attention if they are here
@@ -1397,6 +1398,25 @@ class BertForTokenClassification(BertPreTrainedModel):
             outputs = (loss,) + outputs
 
         return outputs  # (loss), scores, (hidden_states), (attentions)
+
+
+def check_greedy(logits) -> bool:
+    logits = logits[:, 1: -1]
+    bs, sl, _ = logits.shape
+    argmax_logits = logits.argmax(2)
+    seq = []
+    length = 0
+    for b in range(bs):
+        for i, s in enumerate(argmax_logits[b]):
+            if s == 3:
+                seq.append(i)
+                length = 0
+            elif s == 0 or s == 1:
+                length += 1
+            else: # s == 2
+                seq += list(range(i - length, i + 1))
+                length = 0
+    return seq == list(range(sl))
 
 
 def viterbi_decode(logits, trans_mat=None):
