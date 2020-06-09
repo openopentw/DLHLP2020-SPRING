@@ -13,8 +13,8 @@ python ./examples/run_squad.py \
 	--predict_file ${test_path} \
 	--max_seq_length 384 \
 	--per_gpu_eval_batch_size 100 \
-	--output_dir ./model \
-	--fp16
+	--output_dir ./model
+	# --fp16
 
 python3 ./process_ans.py \
 	./model/predictions_.json \
